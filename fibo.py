@@ -1,5 +1,6 @@
 # Fibonacci numbers module
 
+
 def fib(n):
     """Write Fibonacci series up to n."""
     a, b = 0, 1
@@ -7,6 +8,7 @@ def fib(n):
         print(a, end=' ')
         a, b = b, a+b
     print()
+
 
 def fib2(n):
     """Return Fibonacci series up to n."""
