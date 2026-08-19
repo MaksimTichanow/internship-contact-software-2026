@@ -13,4 +13,3 @@ def all_even(your_list):
             print(f"{num} is an even Number")
             continue
 
-print("TESTING_GIT_BRANCHES")
