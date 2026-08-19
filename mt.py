@@ -1,6 +1,7 @@
+# Eigenes Package
 import sys
 import os
-# Eigenes Package
+
 
 
 # Funktionen
@@ -44,3 +45,4 @@ def string_length(word):
 
 def biggest_float():
     print(sys.float_info.max)
+
