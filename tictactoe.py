@@ -1,6 +1,7 @@
 import os
 import random
 import subprocess
+from mt import clear
 
 # Variablen
 s1_win = False
@@ -12,6 +13,7 @@ s2_turn = False
 s1_name = ""
 s2_name = ""
 rounds_played = 0
+draw = False
 
 
 # Listen
@@ -24,20 +26,25 @@ spielfeld = [
 
 # Funktionen
 
+
 def spielfeld_output():
+
     global spielfeld
+
     for zeile in spielfeld:
         print(zeile)
 
 
 
 def spieler_namen():
+
     global s1_name
     global s2_name
     global s1_turn
     global s2_turn
     global s1_sign
     global s2_sign
+
 
     s1_name = input("Spieler 1 Name: ")
     s2_name = input("Spieler 2 Name: ")
@@ -67,7 +74,6 @@ def spieler_namen():
     spieler_inputs()
 
 
-
 def spieler_inputs():
     global s1_turn
     global s2_turn
@@ -75,6 +81,7 @@ def spieler_inputs():
     global rounds_played
     global s1_win
     global s2_win
+
 
     if s1_win == True or s2_win == True:
         input("Press any key to exit...")
@@ -106,11 +113,7 @@ def spieler_inputs():
         s2_turn = False
         win_check()
 
-
-    
-    spieler_inputs()
-        
-        
+                    
 
 def win_check():
     global spielfeld
@@ -225,6 +228,7 @@ def win_check():
 
     # Vertikal
 
+
     elif spielfeld[0][0] == 'O' and spielfeld[1][0] == 'O' and spielfeld[2][0] == 'O':
         if s1_sign == 'O':
             print(f"{s1_name} hat das Spiel gewonnen!")
@@ -271,7 +275,3 @@ def win_check():
         print("Unentschieden")
         input()
     
-
-
-subprocess.call("clear")
-spieler_namen()

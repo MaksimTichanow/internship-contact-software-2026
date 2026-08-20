@@ -1,10 +1,14 @@
 # Eigenes Package
 import sys
 import os
-
+import subprocess
 
 
 # Funktionen
+
+def clear():
+    subprocess.run('cls' if os.name == 'nt' else 'clear', shell=True)
+
 
 def iterate_word(word):
     for i in word:
