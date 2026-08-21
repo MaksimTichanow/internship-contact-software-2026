@@ -172,38 +172,21 @@ class TicTacToe:
             self.p1_turn = True
 
 
-
-
-
 game = TicTacToe()
-
-if __name__ == "__main__":
-    game = TicTacToe()
-
-    # Spielablauf
-    game.board.banner()
-    game.get_player_names()
-    game.get_player_symbol()
-    game.start_turn_check()
-
-    while True:
-        game.board.spielfeld_output()
-        game.board.all_checks()
-        game.player_input()
-
-
 
 
 # Spielablauf
-# game.board.banner()
-# game.get_player_names()
-# game.get_player_symbol()
-# game.start_turn_check()
+game.board.banner()
+game.get_player_names()
+game.get_player_symbol()
+game.start_turn_check()
 
-# while True:
-#     game.board.spielfeld_output()
-#     game.board.all_checks()
-#     game.player_input()
+while True:
+    game.board.spielfeld_output()
+    game.board.all_checks()
+    game.player_input()
+
+
 
 
 
