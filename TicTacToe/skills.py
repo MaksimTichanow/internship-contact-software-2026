@@ -208,4 +208,65 @@ class MyTimerUtils:
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
 
-        
+
+class MyTerminalUtils:
+
+    @staticmethod
+    def clear():
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+    @staticmethod
+    def title(text):
+        if os.name == 'nt':
+            os.system(f'title {text}')
+
+    @staticmethod
+    def banner(text):
+        line = "="* (len(text) + 8)
+        print(line)
+        print(f"    {text}")
+        print(line)
+
+    @staticmethod
+    def success(text):
+        print(f"[+] {text}")
+
+    @staticmethod
+    def info(text):
+        print(f"[i] {text}")
+
+    @staticmethod
+    def warning(text):
+        print(f"[!] {text}")
+
+    @staticmethod
+    def error(text):
+        print(f"[-] {text}")
+
+    @staticmethod
+    def ask(text):
+        return input(f"[?] {text}: ")
+
+    @staticmethod
+    def confirm(text) -> bool:
+        answer = input(f"{text} (y/n): ").lower()
+        return answer in ['y', 'yes']
+
+    @staticmethod
+    def progress(current, total, bar_length=40):
+        if total <= 0:
+            return
+        percentage = current / total
+        filled = int(bar_length * percentage)
+
+        bar = ("█" * filled + "-" * (bar_length - filled))
+
+        sys.stdout.write(
+            f"\r[{bar}]"
+            f"{percentage * 100:6.2f}% "
+                         )
+        sys.stdout.flush()
+
+        if current >= total:
+            print()
+
