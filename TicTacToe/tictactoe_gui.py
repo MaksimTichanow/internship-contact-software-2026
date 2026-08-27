@@ -1,5 +1,4 @@
 import sys
-import time
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QSize
@@ -7,7 +6,6 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication,
 )
-from skills import MySystemUtils
 
 
 class TitleWindow(QtWidgets.QWidget):
@@ -97,6 +95,8 @@ class GameWindow(QtWidgets.QWidget):
         self.player_2_turn = False
         self.games_played = 0
         self.game_over = False
+        self.wins = {player_1_name: 0, player_2_name: 0}
+        self.leaderboard = None
 
         self.current_player = self.player_1_symbol
 
@@ -107,7 +107,9 @@ class GameWindow(QtWidgets.QWidget):
         self.status_label = QtWidgets.QLabel("Status: ", alignment=QtCore.Qt.AlignBottom)
         self.setFixedSize(QSize(500, 500))
         self.setWindowTitle("Game")
-
+        self.reset_button = QtWidgets.QPushButton("Reset")
+        self.reset_button.setFixedSize(QSize(60, 40))
+        self.reset_button.clicked.connect(self.reset_game)
 
         self.player_1_label = QtWidgets.QLabel(f"{player_1_name} ({player_1_symbol})")
         self.player_2_label = QtWidgets.QLabel(f"{player_2_name} ({player_2_symbol})")
@@ -128,6 +130,10 @@ class GameWindow(QtWidgets.QWidget):
 
         self.layout = QtWidgets.QVBoxLayout(self)
         self.layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        self.top_layout = QtWidgets.QHBoxLayout()
+        self.top_layout.addStretch()
+        self.top_layout.addWidget(self.reset_button)
+        self.layout.addLayout(self.top_layout)
         self.layout.addWidget(self.player_1_label)
         self.layout.addWidget(self.player_2_label)
         self.layout.addWidget(self.title_label)
@@ -137,11 +143,11 @@ class GameWindow(QtWidgets.QWidget):
 
     def player_label_color(self):
         if self.current_player == self.player_1_symbol:
-            self.player_1_label.setStyleSheet("color: blue;")
+            self.player_1_label.setStyleSheet("color: yellow;")
             self.player_2_label.setStyleSheet("")
         else:
             self.player_1_label.setStyleSheet("")
-            self.player_2_label.setStyleSheet("color: blue;")
+            self.player_2_label.setStyleSheet("color: yellow;")
 
 
     def player_input(self):
@@ -160,6 +166,21 @@ class GameWindow(QtWidgets.QWidget):
         self.games_played += 1
         self.player_label_color()
         self.all_checks()
+
+    def reset_game(self):
+        for row in range(3):
+            for column in range(3):
+                button_widget = self.game_grid.itemAtPosition(row, column)
+                button_widget.widget().setText("")
+
+        self.games_played = 0
+        self.game_over = False
+        self.current_player = self.player_1_symbol
+        self.status_label.setText("Status: ")
+        self.status_label.setStyleSheet("")
+        if self.leaderboard is not None:
+            self.leaderboard.close()
+        self.player_label_color()
 
 
 
@@ -253,10 +274,19 @@ class GameWindow(QtWidgets.QWidget):
             self.game_over = True
             self.status_label.setText("Draw!")
             self.status_label.setStyleSheet("font-weight: bold;")
+            self.show_leaderboard()
+
+class Leaderboard(QtWidgets.QWidget):
+    pass
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    with open("internship-contact-software-2026/TicTacToe/style.qss", "r") as file:
+        app.setStyleSheet(file.read())
+
+
     title_window = TitleWindow()
     title_window.show()
     sys.exit(app.exec())
