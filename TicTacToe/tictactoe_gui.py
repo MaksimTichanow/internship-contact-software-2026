@@ -1,4 +1,5 @@
 import sys
+import time
 
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QSize
@@ -9,20 +10,11 @@ from PySide6.QtWidgets import (
 from skills import MySystemUtils
 
 
-def start_game():
-    title_window.game_window = GameWindow(
-        player_1_name = title_window.player_1_name_input.text(),
-        player_2_name = title_window.player_2_name_input.text(),
-        player_1_symbol = title_window.player_1_symbol_dropdown.currentText(),
-        player_2_symbol = title_window.player_2_symbol_dropdown.currentText(),)
-    title_window.game_window.show()
-    title_window.close()
-
-
 class TitleWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
+        self.game_window = None
         # Widgets, Variablen, Layouts 
 
         self.setFixedSize(QSize(400, 350))
@@ -35,14 +27,14 @@ class TitleWindow(QtWidgets.QWidget):
         self.player_1_symbol_dropdown.setCurrentText("X")
         self.player_1_name_label = QtWidgets.QLabel("Player 1 Name:")
         self.player_1_symbol_label = QtWidgets.QLabel("Player 1 Symbol:")
-        self.player_1_name_input = QtWidgets.QLineEdit()
+        self.player_1_name_input = QtWidgets.QLineEdit("Player 1")
 
         self.player_2_symbol_dropdown = QtWidgets.QComboBox()
         self.player_2_symbol_dropdown.addItems(["X", "O"])
         self.player_2_symbol_dropdown.setCurrentText("O")
         self.player_2_name_label = QtWidgets.QLabel("Player 2 Name:")
         self.player_2_symbol_label = QtWidgets.QLabel("Player 2 Symbol:")
-        self.player_2_name_input = QtWidgets.QLineEdit()
+        self.player_2_name_input = QtWidgets.QLineEdit("Player 2")
 
         self.player_1_symbol_dropdown.currentIndexChanged.connect(self.check_player_symbols)
         self.player_2_symbol_dropdown.currentIndexChanged.connect(self.check_player_symbols)
@@ -84,7 +76,13 @@ class TitleWindow(QtWidgets.QWidget):
                 self.player_1_symbol_dropdown.setCurrentText("O" if player_2 == "X" else "X")
 
     def start_button_clicked(self):
-        start_game()
+        player_1_name = self.player_1_name_input.text()
+        player_2_name = self.player_2_name_input.text()
+        player_1_symbol = self.player_1_symbol_dropdown.currentText()
+        player_2_symbol = self.player_2_symbol_dropdown.currentText()
+        self.game_window = GameWindow(player_1_name, player_2_name, player_1_symbol, player_2_symbol)
+        self.game_window.show()
+        self.hide()
 
 
 class GameWindow(QtWidgets.QWidget):
@@ -97,6 +95,10 @@ class GameWindow(QtWidgets.QWidget):
         self.player_2_symbol = player_2_symbol
         self.player_1_turn = False
         self.player_2_turn = False
+        self.games_played = 0
+        self.game_over = False
+
+        self.current_player = self.player_1_symbol
 
         self.title_label = QtWidgets.QLabel("Tic Tac Toe", alignment=QtCore.Qt.AlignHCenter)
         title_font = QFont()
@@ -109,6 +111,7 @@ class GameWindow(QtWidgets.QWidget):
 
         self.player_1_label = QtWidgets.QLabel(f"{player_1_name} ({player_1_symbol})")
         self.player_2_label = QtWidgets.QLabel(f"{player_2_name} ({player_2_symbol})")
+        self.player_label_color()
 
         self.game_grid = QtWidgets.QGridLayout()
         self.game_grid.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
@@ -132,63 +135,84 @@ class GameWindow(QtWidgets.QWidget):
         self.layout.addLayout(self.game_grid)
 
 
-    def player_input(self):
-        self.player_1_turn = False
-        self.player_2_turn = False
-
-        # Spieler der startet
-        if self.player_1_symbol == "X":
-            self.player_1_turn = True
+    def player_label_color(self):
+        if self.current_player == self.player_1_symbol:
+            self.player_1_label.setStyleSheet("color: blue;")
+            self.player_2_label.setStyleSheet("")
         else:
-            self.player_2_turn = True
+            self.player_1_label.setStyleSheet("")
+            self.player_2_label.setStyleSheet("color: blue;")
 
+
+    def player_input(self):
         button = self.sender()
 
-        # Player Input
-        if button.text() != "":
+        if self.game_over or button.text():
             return
-        if self.player_1_turn:
+
+        if self.current_player == self.player_1_symbol:
             button.setText(self.player_1_symbol)
-            self.player_1_turn = False
-            self.player_2_turn = True
+            self.current_player = self.player_2_symbol
         else:
             button.setText(self.player_2_symbol)
-            self.player_1_turn = True
-            self.player_2_turn = False
+            self.current_player = self.player_1_symbol
 
-       
+        self.games_played += 1
+        self.player_label_color()
+        self.all_checks()
+
+
+
+    def read_already_placed_symbols(self):
+        spielfeld = [
+            [' ', ' ', ' '],
+            [' ', ' ', ' '],
+            [' ', ' ', ' '],
+        ]
+        for row in range(3):
+            for column in range(3):
+                button_widget = self.game_grid.itemAtPosition(row, column)
+                button = button_widget.widget()
+                button_symbol = button.text()
+                spielfeld[row][column] = button_symbol   
+        return spielfeld
+    
 
     def check_horizontal(self):
-            win_x = False
-            win_o = False
-            for row in self.game_grid:
-                win_x = win_x or (row[0] == "X" and row[1] == "X" and row[2] == "X")
-                win_o = win_o or (row[0] == "O" and row[1] == "O" and row[2] == "O")
-            return win_x, win_o
+        spielfeld = self.read_already_placed_symbols()
+        win_x = False
+        win_o = False
+        for row in spielfeld:
+            win_x = win_x or (row[0] == "X" and row[1] == "X" and row[2] == "X")
+            win_o = win_o or (row[0] == "O" and row[1] == "O" and row[2] == "O")
+        return win_x, win_o
 
 
     def check_vertical(self):
+        spielfeld = self.read_already_placed_symbols()
         win_x = False
         win_o = False
         for column in range(3):
-            win_x = win_x or (self.game_grid[0][column] == "X" and self.game_grid[1][column] == "X" and self.game_grid[2][column] == "X")
-            win_o = win_o or (self.game_grid[0][column] == "O" and self.game_grid[1][column] == "O" and self.game_grid[2][column] == "O")
+            win_x = win_x or (spielfeld[0][column] == "X" and spielfeld[1][column] == "X" and spielfeld[2][column] == "X")
+            win_o = win_o or (spielfeld[0][column] == "O" and spielfeld[1][column] == "O" and spielfeld[2][column] == "O")
         return win_x, win_o
 
     
 
     def check_diagonal(self):
+        spielfeld = self.read_already_placed_symbols()
         win_x = False
         win_o = False
 
-        win_x = self.game_grid[0][0] == "X" and self.game_grid[1][1] == "X" and self.game_grid[2][2] == "X"
-        win_o = self.game_grid[0][0] == "O" and self.game_grid[1][1] == "O" and self.game_grid[2][2] == "O"
+        win_x = spielfeld[0][0] == "X" and spielfeld[1][1] == "X" and spielfeld[2][2] == "X"
+        win_o = spielfeld[0][0] == "O" and spielfeld[1][1] == "O" and spielfeld[2][2] == "O"
 
         if not win_x and not win_o:
-            win_x = self.game_grid[0][2] == "X" and self.game_grid[1][1] == "X" and self.game_grid[2][0] == "X"
-            win_o = self.game_grid[0][2] == "O" and self.game_grid[1][1] == "O" and self.game_grid[2][0] == "O"
+            win_x = spielfeld[0][2] == "X" and spielfeld[1][1] == "X" and spielfeld[2][0] == "X"
+            win_o = spielfeld[0][2] == "O" and spielfeld[1][1] == "O" and spielfeld[2][0] == "O"
 
         return win_x, win_o
+        
 
     def draw_check(self):
 
@@ -197,7 +221,8 @@ class GameWindow(QtWidgets.QWidget):
         v_win_X, v_win_O = self.check_vertical()
 
         if (h_win_X == False and h_win_O == False and d_win_X == False and d_win_O == False and v_win_X == False and v_win_O == False and self.games_played >= 9):
-            MySystemUtils.exit()
+            self.status_label.steText("Draw!")
+            self.status_label.setStyleSheet("color: yellow;")
 
     def all_checks(self):
         horizontal_win_x, horizontal_win_o = self.check_horizontal()
@@ -205,24 +230,29 @@ class GameWindow(QtWidgets.QWidget):
         diagonal_win_x, diagonal_win_o = self.check_diagonal()
 
         if horizontal_win_x or vertical_win_x or diagonal_win_x:
+            self.game_over = True
             if self.player_2_symbol == "O":
                 self.status_label.setText(f"{self.player_1_name} won!")
-                MySystemUtils.exit()
+                self.status_label.setStyleSheet("font-weight: bold;")
+                
             else:
                 self.status_label.setText(f"{self.player_2_name} won!")
-                MySystemUtils.exit()
+                self.status_label.setStyleSheet("font-weight: bold;")
 
         elif horizontal_win_o or vertical_win_o or diagonal_win_o:
+            self.game_over = True
             if self.player_1_symbol == "X":
                 self.status_label.setText(f"{self.player_2_name} won!")
-                MySystemUtils.exit()
+                self.status_label.setStyleSheet("font-weight: bold;")
             else:
                 self.status_label.setText(f"{self.player_1_name} won!")
-                MySystemUtils.exit()
+                self.status_label.setStyleSheet("font-weight: bold;")
+
 
         elif self.games_played >= 9:
+            self.game_over = True
             self.status_label.setText("Draw!")
-            MySystemUtils.exit()
+            self.status_label.setStyleSheet("font-weight: bold;")
 
 
 if __name__ == "__main__":
